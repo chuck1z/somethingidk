@@ -5,6 +5,9 @@ from app.model import PostSchema, UserSchema, UserLoginSchema
 from app.auth.jwt_handler import signJWT
 from app.auth.jwt_bearer import jwtBearer
 
+import mysql.connector
+
+
 posts = [
     {
         "id": 1,
@@ -27,6 +30,17 @@ posts = [
 
 
 ]
+
+mydb = mysql.connector.connect(
+    host="34.69.199.102",
+    user="root",
+    password="J]91kx6G&S:^]'Gu",
+    database="component"
+)
+
+mycursor = mydb.cursor()
+cnx = mysql.connector.connect(**config)
+cnx.close()
 
 users = []
 
