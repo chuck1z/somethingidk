@@ -35,23 +35,68 @@ mydb = mysql.connector.connect(
     host="34.69.199.102",
     user="root",
     password="J]91kx6G&S:^]'Gu",
-    database="component"
+    database="components"
 )
 
-mycursor = mydb.cursor()
-cnx = mysql.connector.connect(**config)
-cnx.close()
+
 
 users = []
 
 app = FastAPI()
 
 def check_user(data: UserLoginSchema):
-   for user in users:
-        if user.email == data.email and user.password == data.password:
-           return True
-   return False
-   
+    mycursor = mydb.cursor()
+
+    email = data.email
+    password = data.password
+    res = (email,)
+
+    mycursor.execute("SELECT * FROM users WHERE email= %s", res)
+    myresult = mycursor.fetchall()
+
+    if (len(myresult) == 1):
+        res_pass = myresult[0][3]
+        if (password == res_pass):
+            return True
+    return False
+
+
+
+def pushUser(data: UserSchema):
+    mycursor = mydb.cursor()
+
+    name = data.fullname
+    email = data.email
+    password = data.password
+    resq = (email,)
+
+    mycursor.execute("SELECT * FROM users WHERE email= %s", resq)
+
+    myresult = mycursor.fetchall()
+
+    isTaken = "undefined"
+    if (len(myresult) == 1):
+        isTaken = True
+    else:
+        isTaken = False 
+
+    if (isTaken):
+        return False
+    else:
+        query = "insert into users (name, email, password) values (%s, %s, %s);" 
+        res = (name,email,password)
+        mycursor.execute(query, res)
+        mydb.commit()
+        return True
+
+
+
+
+
+
+
+
+
 # Get test
 @app.get("/", tags=["test"])
 def greet():
@@ -86,10 +131,25 @@ def add_post(post: PostSchema):
     }
 
 # User thingy I forgor basically
+#@app.post("/user/signup", tags=["user"])
+#def user_signup(user : UserSchema = Body(...)):
+#    users.append(user)
+#    return signJWT(user.email)
+
+
+
 @app.post("/user/signup", tags=["user"])
 def user_signup(user : UserSchema = Body(...)):
     users.append(user)
-    return signJWT(user.email)
+
+    if pushUser(user):
+        return signJWT(user.email)
+    else:
+        return{
+            "error":"email already taken"
+        }
+
+
 
 
 
