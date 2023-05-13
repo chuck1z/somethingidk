@@ -7,7 +7,6 @@ from app.auth.jwt_bearer import jwtBearer
 
 import mysql.connector
 
-
 posts = [
     {
         "id": 1,
