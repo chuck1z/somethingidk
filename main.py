@@ -74,7 +74,7 @@ def getCreden(data: UserLoginSchema):
             "Username":resName
         }
     else:
-        return{"error"}
+        return{"error":"what the hell are you trying to do 🗿"}
  
 
 
