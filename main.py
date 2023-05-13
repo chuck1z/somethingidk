@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, Body, Depends
 from app.model import PostSchema
-from app.model import PostSchema, UserSchema, UserLoginSchema
+from app.model import PostSchema, UserSchema, UserLoginSchema, getComponent
 from app.auth.jwt_handler import signJWT
 from app.auth.jwt_bearer import jwtBearer
 
@@ -60,6 +60,24 @@ def check_user(data: UserLoginSchema):
             return True
     return False
 
+def getCreden(data: UserLoginSchema):
+    if check_user(data):
+        mycursor = mydb.cursor()
+        email = data.email
+        res = (email,)
+        mycursor.execute("SELECT * FROM users WHERE email= %s", res)
+        myresult = mycursor.fetchall()
+        resId = myresult[0][0]
+        resName = myresult[0][1]
+        return{
+            "id":resId,
+            "Username":resName
+        }
+    else:
+        return{"error"}
+ 
+
+
 
 
 def pushUser(data: UserSchema):
@@ -90,11 +108,50 @@ def pushUser(data: UserSchema):
         return True
 
 
+def getbyId(name):
+    mycursor = mydb.cursor()
+
+    # mycursor.execute("SELECT * FROM3 comps")
+    res=(name,)
+    mycursor.execute("SELECT * FROM comps WHERE name= %s", res)
+
+    myresult = mycursor.fetchall()
+    id=myresult[0][0]
+    name=myresult[0][1]
+    desc=myresult[0][2]
+    example=myresult[0][3]
+    
+    myresult={
+        "id":id,
+        "name":name,
+        "desc":desc,
+        "example":example
+    }
+
+    return myresult
 
 
+def getArticlebyId(compid):
+    mycursor = mydb.cursor()
+    
+    res=(compid,)
+    mycursor.execute("SELECT * FROM articles WHERE componentId= %s", res)
+    myresult = mycursor.fetchall()
+    id=myresult[0][0]
+    name=myresult[0][1]
+    desc=myresult[0][2]
+    imgurl=myresult[0][3]
+    compid=myresult[0][4]
 
+    humu={
+        "id":id,
+        "name":name,
+        "desc":desc,
+        "imgurl":imgurl,
+        "compid":compid,
+    }
 
-
+    return humu
 
 
 # Get test
@@ -120,6 +177,28 @@ def get_one_post(id:int):
             return {
                 "data":post
             }
+        
+
+
+
+@app.get("/component{id}", dependencies=[Depends(jwtBearer())], tags=["components"])
+def comps(name: str):
+    result = getbyId(name)
+    return {
+        "componentList":result
+    }
+
+
+
+@app.get("/article{id}", dependencies=[Depends(jwtBearer())], tags=["articles"])
+def comps(compid: str):
+    result = getArticlebyId(compid)
+    return {
+        "articleList":result
+    }
+
+
+
 
 # Post new post
 @app.post("/posts", dependencies=[Depends(jwtBearer())], tags=["posts"])
@@ -143,10 +222,15 @@ def user_signup(user : UserSchema = Body(...)):
     users.append(user)
 
     if pushUser(user):
-        return signJWT(user.email)
+        return {
+            "error":"false",
+            "message":"User Created",
+            "signupToken":signJWT(user.email)
+            }
     else:
         return{
-            "error":"email already taken"
+            "error":"true",
+            "message":"Email already taken 🗿"
         }
 
 
@@ -156,8 +240,18 @@ def user_signup(user : UserSchema = Body(...)):
 @app.post("/user/login", tags=["user"])
 def user_login(user: UserLoginSchema = Body(...)):
     if check_user(user):
-        return signJWT(user.email)
+        return {
+            "error":"false",
+            "message":"login success",
+            "loginResult":{
+            "userId":getCreden(user),
+            "token":signJWT(user.email)}}
     else:
         return{
-            "error":"Invalid login details! >:("
+            "error":"Invalid login details! 🗿"
         }
+    
+
+
+
+

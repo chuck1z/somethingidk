@@ -51,4 +51,21 @@ class UserLoginSchema(BaseModel):
 
         }
 
+class getComponent(BaseModel):
+    id : int = Field(default=None)
+    name : str = Field(default=None)
+    desc : str = Field(default=None)
+    example : str = Field(default=None)
+    class Config:
+        the_schema = {
+            "getComp_demo": {
+                "id":"0",
+                "name":"cable",
+                "desc":"some stuff",
+                "example":"cable.com"
+            }
+
+        }
+
+
     
